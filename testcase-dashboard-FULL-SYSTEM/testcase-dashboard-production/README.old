@@ -1,0 +1,382 @@
+# 🚀 Test Case Dashboard - Production Ready
+
+Real-time test case monitoring dashboard with auto-update functionality.
+
+## ✨ Features
+
+- 📊 Real-time dashboard with charts and metrics
+- 🔄 Auto-update from Excel/Google Sheets (configurable interval)
+- 📈 Trend analysis and historical data
+- 🚨 Alert system for test failures
+- 🐳 Docker-based deployment (production-ready)
+- 🔐 Security hardened
+- 📝 Comprehensive logging
+
+## 🎯 Quick Start (3 Commands)
+
+```bash
+# 1. Configure environment
+cp .env.example .env
+nano .env  # Update passwords
+
+# 2. Place your Excel file
+cp your-testcases.xlsx ./data/testcases.xlsx
+
+# 3. Deploy!
+make deploy
+```
+
+**Access Dashboard:** http://localhost:5173
+
+## 📋 Prerequisites
+
+- Docker 24.0+
+- Docker Compose v2+
+- 4GB RAM minimum
+- 20GB disk space
+
+## 🛠️ Installation
+
+### Step 1: Clone/Extract Project
+
+```bash
+# If from tarball
+tar -xzf testcase-dashboard-production.tar.gz
+cd testcase-dashboard-production/
+
+# If from Git
+git clone <your-repo>
+cd testcase-dashboard/
+```
+
+### Step 2: Configure Environment
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit configuration
+nano .env
+```
+
+**Important: Update these values in .env:**
+- `DB_PASSWORD` - Database password
+- `JWT_SECRET` - JWT secret key
+- `VITE_API_URL` - API URL (for production)
+
+### Step 3: Prepare Data
+
+```bash
+# Place your Excel test case file
+cp /path/to/testcases.xlsx ./data/testcases.xlsx
+
+# Or configure Google Sheets in .env
+```
+
+### Step 4: Deploy
+
+```bash
+# Using Makefile (recommended)
+make deploy
+
+# Or using Docker Compose directly
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Step 5: Verify
+
+```bash
+# Check services
+docker-compose ps
+
+# Check health
+make health
+
+# View logs
+make logs
+```
+
+## 📊 Service URLs
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| Dashboard | http://localhost:5173 | Main UI |
+| API | http://localhost:3000 | Backend API |
+| Health Check | http://localhost:3000/api/health | API status |
+| PostgreSQL | localhost:5432 | Database |
+| Redis | localhost:6379 | Queue |
+
+## 🎮 Makefile Commands
+
+```bash
+# Deployment
+make deploy         # Full deployment
+make up            # Start services
+make down          # Stop services
+make restart       # Restart services
+
+# Monitoring
+make logs          # View all logs
+make logs-backend  # Backend logs
+make logs-worker   # Worker logs
+make health        # Health check
+make ps            # Container status
+
+# Database
+make backup        # Backup database
+make restore       # Restore database
+make migrate       # Run migrations
+
+# Maintenance
+make clean         # Clean everything
+make prune         # Clean Docker cache
+make update        # Update images
+
+# Development
+make shell-backend # Backend shell
+make shell-worker  # Worker shell
+make shell-db      # Database shell
+```
+
+## 📁 Project Structure
+
+```
+testcase-dashboard/
+├── backend/              # Backend API
+│   ├── src/
+│   │   ├── index.js     # API entry point
+│   │   ├── config/      # Configuration
+│   │   └── controllers/ # API controllers
+│   ├── worker/          # Data collector
+│   ├── prisma/          # Database schema
+│   ├── Dockerfile
+│   └── package.json
+│
+├── frontend/            # React Dashboard
+│   ├── src/
+│   │   ├── main.tsx    # Entry point
+│   │   └── components/ # UI components
+│   ├── Dockerfile
+│   └── package.json
+│
+├── data/               # Excel files
+├── logs/               # Application logs
+├── scripts/            # Utility scripts
+├── docker-compose.yml  # Services config
+├── Makefile           # DevOps commands
+└── .env               # Environment config
+```
+
+## 🔄 Auto-Update Configuration
+
+### Enable via API:
+
+```bash
+curl -X PUT http://localhost:3000/api/settings/auto-update \
+  -H "Content-Type: application/json" \
+  -d '{
+    "enabled": true,
+    "interval": 30,
+    "source": "excel",
+    "file_path": "/app/data/testcases.xlsx"
+  }'
+```
+
+### Enable via Dashboard:
+
+1. Open http://localhost:5173
+2. Toggle "Auto-Update" switch ON
+3. Select interval (5/15/30/60 minutes)
+4. Done!
+
+## 🔧 Configuration Options
+
+### Data Sources:
+
+**1. Excel File (Default):**
+```env
+DEFAULT_SOURCE=excel
+DEFAULT_FILE_PATH=/app/data/testcases.xlsx
+```
+
+**2. Google Sheets:**
+```env
+DEFAULT_SOURCE=gsheet
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----...
+```
+
+**3. Network Drive:**
+Update `docker-compose.yml`:
+```yaml
+volumes:
+  - /mnt/network-drive:/app/data:ro
+```
+
+## 📊 Monitoring & Logs
+
+### View Logs:
+
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f backend
+docker-compose logs -f worker
+
+# Application logs (Winston)
+tail -f logs/backend/error.log
+tail -f logs/backend/combined.log
+tail -f logs/worker/combined.log
+```
+
+### Health Checks:
+
+```bash
+# All services
+make health
+
+# Specific checks
+curl http://localhost:3000/api/health
+curl http://localhost:5173/health
+```
+
+## 🔐 Security
+
+### Production Checklist:
+
+- [ ] Change default passwords in `.env`
+- [ ] Update `JWT_SECRET` to random string
+- [ ] Configure `CORS_ORIGIN` to your domain
+- [ ] Use HTTPS in production
+- [ ] Restrict database port exposure
+- [ ] Enable firewall (UFW)
+- [ ] Regular backups
+- [ ] Update dependencies regularly
+
+## 🐛 Troubleshooting
+
+### Services won't start:
+
+```bash
+# Check logs
+docker-compose logs
+
+# Rebuild from scratch
+docker-compose down -v
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Port already in use:
+
+```bash
+# Change ports in .env
+API_PORT=3001
+FRONTEND_PORT=5174
+```
+
+### Database connection error:
+
+```bash
+# Check PostgreSQL
+docker-compose exec postgres pg_isready -U admin
+
+# Restart database
+docker-compose restart postgres
+```
+
+### Excel file not found:
+
+```bash
+# Check file exists
+ls -la ./data/testcases.xlsx
+
+# Check permissions
+chmod 644 ./data/testcases.xlsx
+```
+
+## 💾 Backup & Restore
+
+### Backup:
+
+```bash
+# Using Makefile
+make backup
+
+# Or manually
+docker-compose exec -T postgres pg_dump -U admin testcase_dashboard > backup.sql
+```
+
+### Restore:
+
+```bash
+# Using Makefile
+make restore
+
+# Or manually
+docker-compose exec -T postgres psql -U admin testcase_dashboard < backup.sql
+```
+
+## 🚀 Production Deployment (Ubuntu)
+
+### Complete deployment guide available in: `docs/DEPLOYMENT_GUIDE.md`
+
+**Quick steps:**
+
+```bash
+# 1. Install Docker
+curl -fsSL https://get.docker.com | sh
+
+# 2. Transfer project
+scp -r testcase-dashboard/ user@server:/home/user/
+
+# 3. Configure
+cd /home/user/testcase-dashboard/
+cp .env.example .env
+nano .env
+
+# 4. Deploy
+make deploy
+
+# 5. Configure firewall
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
+## 📚 Documentation
+
+- **README.md** - This file
+- **docs/DEPLOYMENT_GUIDE.md** - Ubuntu deployment
+- **docs/ARCHITECTURE.md** - System architecture
+- **docs/API.md** - API documentation
+- **docs/TROUBLESHOOTING.md** - Common issues
+
+## 🤝 Support
+
+### Common Issues:
+
+- Build errors → Check `docs/TROUBLESHOOTING.md`
+- Configuration → Check `.env.example`
+- Deployment → Check `docs/DEPLOYMENT_GUIDE.md`
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+## 🎉 Success!
+
+Once deployed, you should see:
+
+```
+✅ 5 services running (Up, healthy)
+✅ Dashboard accessible at http://localhost:5173
+✅ API responding at http://localhost:3000
+✅ Auto-update enabled
+✅ Logs rotating properly
+```
+
+**Congratulations! Your Test Case Dashboard is ready! 🚀**

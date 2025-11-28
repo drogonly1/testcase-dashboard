@@ -1,0 +1,123 @@
+// backend/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Test Case Master Table
+model TestCase {
+  id          Int       @id @default(autoincrement())
+  testId      String    @unique @map("test_id") // TC-001, TC-002
+  summary     String    @db.Text
+  description String?   @db.Text
+  category    String?   @db.VarChar(100)
+  priority    String?   @default("medium") @db.VarChar(50) // low, medium, high, critical
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  runs        TestRun[]
+  
+  @@index([testId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("test_cases")
+}
+
+// Test Run History Table
+model TestRun {
+  id          Int       @id @default(autoincrement())
+  testCaseId  Int       @map("test_case_id")
+  
+  status      String    @db.VarChar(50) // passed, failed, pending, skipped
+  assignee    String?   @db.VarChar(100)
+  executedBy  String?   @map("executed_by") @db.VarChar(100)
+  executedAt  DateTime? @map("executed_at")
+  
+  // Test details
+  duration    Int?      // milliseconds
+  errorMsg    String?   @map("error_msg") @db.Text
+  screenshot  String?   @db.Text // URL or path
+  
+  // Metadata
+  environment String?   @default("test") @db.VarChar(50) // dev, test, staging, prod
+  buildNumber String?   @map("build_number") @db.VarChar(100)
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  testCase    TestCase  @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  
+  @@index([testCaseId])
+  @@index([status])
+  @@index([executedAt])
+  @@index([createdAt])
+  @@map("test_runs")
+}
+
+// Daily Metrics Snapshot Table
+model DailyMetrics {
+  id          Int       @id @default(autoincrement())
+  date        DateTime  @unique @db.Date
+  
+  totalTests  Int       @default(0) @map("total_tests")
+  passed      Int       @default(0)
+  failed      Int       @default(0)
+  pending     Int       @default(0)
+  skipped     Int       @default(0)
+  
+  passRate    Float     @default(0) @map("pass_rate") // percentage
+  avgDuration Int       @default(0) @map("avg_duration") // milliseconds
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  @@index([date])
+  @@map("daily_metrics")
+}
+
+// Collection Job History Table
+model CollectionJob {
+  id          Int       @id @default(autoincrement())
+  
+  source      String    @db.VarChar(50) // excel, gsheet
+  filePath    String?   @map("file_path") @db.Text
+  spreadsheetId String? @map("spreadsheet_id") @db.VarChar(255)
+  
+  status      String    @db.VarChar(50) // pending, processing, completed, failed
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  
+  // Results
+  totalRows   Int       @default(0) @map("total_rows")
+  successRows Int       @default(0) @map("success_rows")
+  errorRows   Int       @default(0) @map("error_rows")
+  errorMsg    String?   @map("error_msg") @db.Text
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  @@index([status])
+  @@index([createdAt])
+  @@map("collection_jobs")
+}
+
+// System Settings Table
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique @db.VarChar(100)
+  value     String   @db.Text
+  category  String?  @db.VarChar(50) // collection, notification, general
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@index([category])
+  @@map("settings")
+}
