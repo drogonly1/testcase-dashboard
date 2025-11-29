@@ -1,0 +1,71 @@
+{
+  // Editor settings
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  
+  // Debug settings
+  "debug.console.fontSize": 14,
+  "debug.inlineValues": "on",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "debug.terminal.clearBeforeReusing": true,
+  
+  // Node.js settings
+  "javascript.suggest.autoImports": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  
+  // Docker settings
+  "docker.containers.groupBy": "None",
+  "docker.showExplorer": true,
+  
+  // Files to exclude
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/logs": true
+  },
+  
+  // Search settings
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/logs": true,
+    "**/.git": true
+  },
+  
+  // Terminal settings
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.fontSize": 14,
+  
+  // Prisma settings
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+  
+  // JavaScript/TypeScript settings
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  
+  // ESLint settings
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  
+  // Auto-attach debugger
+  "debug.javascript.autoAttachFilter": "smart"
+}

@@ -1,0 +1,80 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🐛 Docker: Attach to Backend",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}/src",
+      "remoteRoot": "/app/src",
+      "protocol": "inspector",
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "trace": true,
+      "sourceMaps": true
+    },
+    {
+      "name": "🐛 Docker: Attach to Worker",
+      "type": "node",
+      "request": "attach",
+      "port": 9230,
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}/worker",
+      "remoteRoot": "/app/worker",
+      "protocol": "inspector",
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "name": "🚀 Local: Launch Backend",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/index.js",
+      "restart": true,
+      "runtimeExecutable": "nodemon",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "DB_NAME": "testcase_dashboard",
+        "DB_USER": "admin",
+        "DB_PASSWORD": "admin123",
+        "REDIS_HOST": "localhost",
+        "REDIS_PORT": "6379",
+        "API_PORT": "3000"
+      }
+    },
+    {
+      "name": "🔍 Docker: Pick Process",
+      "type": "node",
+      "request": "attach",
+      "processId": "${command:PickProcess}",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "🐛 Debug Backend + Worker",
+      "configurations": [
+        "🐛 Docker: Attach to Backend",
+        "🐛 Docker: Attach to Worker"
+      ],
+      "stopAll": true
+    }
+  ]
+}

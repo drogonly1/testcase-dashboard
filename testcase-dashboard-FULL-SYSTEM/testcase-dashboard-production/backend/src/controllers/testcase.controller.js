@@ -221,3 +221,55 @@ exports.getTopFailures = async (req, res) => {
     res.status(500).json(error(err.message, 500));
   }
 };
+
+/**
+ * Get metrics
+ * GET /api/testcases/metrics
+ */
+exports.getMetrics = async (req, res) => {
+  try {
+    const metricsService = require('../services/metrics.service');
+    const metrics = await metricsService.getMetrics();
+    res.json(metrics);
+  } catch (err) {
+    console.error('Error in getMetrics:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Get trends
+ * GET /api/testcases/trends
+ */
+exports.getTrends = async (req, res) => {
+  try {
+    const metricsService = require('../services/metrics.service');
+    const days = parseInt(req.query.days) || 7;
+    const trends = await metricsService.getTrends(days);
+    res.json(trends);
+  } catch (err) {
+    console.error('Error in getTrends:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Sync test cases from Excel
+ * POST /api/testcases/sync
+ */
+exports.syncTestCases = async (req, res) => {
+  try {
+    const testCaseService = require('../services/testcase.service');
+    const { filePath } = req.body;
+    
+    if (!filePath) {
+      return res.status(400).json({ error: 'filePath is required' });
+    }
+    
+    const result = await testCaseService.syncFromExcel(filePath);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('Error in syncTestCases:', err);
+    res.status(500).json({ error: err.message });
+  }
+};

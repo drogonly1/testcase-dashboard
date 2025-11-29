@@ -39,13 +39,26 @@ app.get('/api/health', (req, res) => {
 });
 
 // Import controllers
-const { testCaseController } = require('./controllers/testcase.controller');
+const testCaseController = require('./controllers/testcase.controller');
 
 // Routes
-app.post('/api/testcases/sync', (req, res) => testCaseController.syncTestCases(req, res));
-app.get('/api/dashboard/metrics', (req, res) => testCaseController.getDashboardMetrics(req, res));
-app.get('/api/dashboard/trends', (req, res) => testCaseController.getTrends(req, res));
-app.get('/api/testcases', (req, res) => testCaseController.getTestCases(req, res));
+// app.post('/api/testcases/sync', (req, res) => testCaseController.syncTestCases(req, res));
+// app.get('/api/dashboard/metrics', (req, res) => testCaseController.getDashboardMetrics(req, res));
+// app.get('/api/dashboard/trends', (req, res) => testCaseController.getTrends(req, res));
+// app.get('/api/testcases', (req, res) => testCaseController.getTestCases(req, res));
+// Test Cases CRUD
+app.get('/api/testcases', testCaseController.getAll);
+app.get('/api/testcases/:id', testCaseController.getById);
+app.post('/api/testcases', testCaseController.create);
+app.put('/api/testcases/:id', testCaseController.update);
+app.delete('/api/testcases/:id', testCaseController.delete);
+
+// Metrics & Trends
+app.get('/api/testcases/metrics', testCaseController.getMetrics);
+app.get('/api/testcases/trends', testCaseController.getTrends);
+
+// Sync
+app.post('/api/testcases/sync', testCaseController.syncTestCases);
 
 // Settings routes
 app.get('/api/settings', async (req, res) => {

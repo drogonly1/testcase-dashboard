@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: testcase-postgres-debug
+    environment:
+      POSTGRES_DB: ${DB_NAME:-testcase_dashboard}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin123}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - testcase-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: testcase-redis-debug
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - testcase-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: testcase-backend-debug
+    ports:
+      - "${API_PORT:-3000}:3000"
+      - "9229:9229"  # ⭐ Debug port
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-testcase_dashboard}
+      - DB_USER=${DB_USER:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:-admin123}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=debug
+    # ⭐ Enable Node.js inspector
+    command: npx nodemon --inspect=0.0.0.0:9229 --signal SIGTERM src/index.js
+    volumes:
+      # ⭐ Mount source code for hot reload
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./package.json:/app/package.json
+      - ./logs/backend:/app/logs
+      - ./data:/app/data
+      # ⭐ Persist node_modules in named volume
+      - backend_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - testcase-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: testcase-worker-debug
+    ports:
+      - "9230:9230"  # ⭐ Debug port for worker
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-testcase_dashboard}
+      - DB_USER=${DB_USER:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:-admin123}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=debug
+    # ⭐ Enable Node.js inspector
+    command: npx nodemon --inspect=0.0.0.0:9230 --signal SIGTERM worker/scheduler.service.js
+    volumes:
+      # ⭐ Mount source code for hot reload
+      - ./worker:/app/worker
+      - ./data:/app/data
+      - ./logs/worker:/app/logs/worker
+      - ./package.json:/app/package.json
+      # ⭐ Persist node_modules in named volume
+      - worker_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - testcase-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: testcase-frontend-debug
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:${API_PORT:-3000}
+    volumes:
+      # ⭐ Mount source code for hot reload
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - testcase-network
+    command: npm run dev -- --host 0.0.0.0
+    stdin_open: true
+    tty: true
+
+networks:
+  testcase-network:
+    driver: bridge
+    name: testcase-debug-network
+
+volumes:
+  postgres_data:
+    name: testcase-postgres-debug-data
+  redis_data:
+    name: testcase-redis-debug-data
+  backend_node_modules:
+    name: testcase-backend-debug-modules
+  worker_node_modules:
+    name: testcase-worker-debug-modules
+  frontend_node_modules:
+    name: testcase-frontend-debug-modules

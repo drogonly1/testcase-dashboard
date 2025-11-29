@@ -1,0 +1,26 @@
+{
+  "watch": [
+    "src/**/*.js",
+    "worker/**/*.js",
+    "prisma/schema.prisma"
+  ],
+  "ext": "js,json,prisma",
+  "ignore": [
+    "src/**/*.test.js",
+    "node_modules/**",
+    "logs/**",
+    "data/**"
+  ],
+  "exec": "node --inspect=0.0.0.0:9229 src/index.js",
+  "delay": 1000,
+  "verbose": true,
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo '\n🔄 Restarting due to file changes...\n'",
+    "crash": "echo '\n💥 App crashed - waiting for file changes...\n'"
+  },
+  "signal": "SIGTERM"
+}

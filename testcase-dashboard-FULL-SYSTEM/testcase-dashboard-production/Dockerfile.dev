@@ -1,0 +1,33 @@
+FROM node:18-alpine
+
+# Install basic tools
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Install nodemon globally for hot reload
+RUN npm install -g nodemon
+
+# Copy prisma schema
+COPY prisma ./prisma
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy source code (will be overridden by volume in debug mode)
+COPY . .
+
+# Expose application port and debug port
+EXPOSE 3000 9229
+
+# Default command (will be overridden in docker-compose.debug.yml)
+CMD ["npx", "nodemon", "--inspect=0.0.0.0:9229", "src/index.js"]
